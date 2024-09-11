@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+/**
+ * This file is part of suyar/hyperf-clickhouse.
+ *
+ * @link     https://github.com/suyar/hyperf-clickhouse
+ * @document https://github.com/suyar/hyperf-clickhouse/blob/main/README.md
+ * @contact  su@zorzz.com
+ * @license  https://github.com/suyar/hyperf-clickhouse/blob/master/LICENSE
+ */
+
+namespace Suyar\ClickHouse\Param\Traits;
+
+trait HasQueryId
+{
+    protected string $queryId = '';
+
+    public function getQueryId(): string
+    {
+        return $this->queryId;
+    }
+
+    public function setQueryId(string $queryId): static
+    {
+        $this->queryId = $queryId;
+
+        return $this;
+    }
+}
