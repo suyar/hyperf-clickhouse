@@ -72,5 +72,8 @@ class Client
 
     public function execute(ExecuteParams $params)
     {
+        $request = $this->http->newRequest($params);
+
+        return $this->http->sendRequest($request);
     }
 }

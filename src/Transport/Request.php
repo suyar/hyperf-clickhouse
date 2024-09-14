@@ -17,6 +17,7 @@ use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\StreamInterface;
 use Suyar\ClickHouse\Config;
 use Suyar\ClickHouse\Exception\InvalidArgumentException;
+use Suyar\ClickHouse\Formats;
 use Suyar\ClickHouse\Param\BaseParams;
 use Suyar\ClickHouse\Param\ExecuteParams;
 use Suyar\ClickHouse\Param\InsertParams;
@@ -38,7 +39,7 @@ class Request
             $params instanceof PingParams => $this->buildPingOptions($params),
             $params instanceof QueryParams => $this->buildQueryOptions($params),
             $params instanceof InsertParams => $this->buildInsertOptions($params),
-            $params instanceof ExecuteParams => $this->buildExecuteParams($params),
+            $params instanceof ExecuteParams => $this->buildExecuteOptions($params),
             default => throw new InvalidArgumentException('Unsupported param type.'),
         };
     }
@@ -88,20 +89,7 @@ class Request
         );
 
         if ($sink = $params->getPersistTo()) {
-            try {
-                if (is_string($sink)) {
-                    $options['sink'] = Utils::tryFopen($sink, 'w+');
-                } elseif (
-                    is_resource($sink) && get_resource_type($sink) === 'stream'
-                    || $sink instanceof StreamInterface
-                ) {
-                    $options['sink'] = $sink;
-                } else {
-                    throw new InvalidArgumentException('Unsupported persist type.');
-                }
-            } catch (Throwable $t) {
-                throw new InvalidArgumentException($t->getMessage());
-            }
+            $options['sink'] = $this->formatSink($sink);
         }
 
         return $options;
@@ -111,7 +99,7 @@ class Request
     {
         $options = [];
 
-        $format = $params->getFormat() ?: 'JSONCompactEachRow';
+        $format = $params->getFormat() ?: Formats::JSONCompactEachRow;
 
         $body = $this->formatValues($params->getValues(), $format, $params->getStringAsFile());
 
@@ -134,24 +122,26 @@ class Request
         return $options;
     }
 
-    protected function buildExecuteParams(ExecuteParams $params): array
+    protected function buildExecuteOptions(ExecuteParams $params): array
     {
         $options = [];
 
         $query = rtrim(trim($params->getQuery()), ';');
-        $format = $this->getFormatFromQuery($query) ?: 'JSONCompactEachRow';
 
         if ($values = $params->getValues()) {
-            $hasValues = true;
+            $format = $this->getFormatFromQuery($query) ?: Formats::JSONCompactEachRow;
             $body = $this->formatValues($values, $format, $params->getStringAsFile());
 
             if ($params->getCompressRequest() ?? $this->config->compressRequest) {
                 $body = $this->compressRequest($body);
                 $options['headers']['Content-Encoding'] = 'gzip';
             }
+
+            $hasValues = true;
         } else {
-            $hasValues = false;
             $body = $query;
+
+            $hasValues = false;
         }
 
         $options['body'] = $body;
@@ -174,7 +164,36 @@ class Request
             $params->getSessionId()
         );
 
+        if ($sink = $params->getPersistTo()) {
+            $options['sink'] = $this->formatSink($sink);
+        }
+
         return $options;
+    }
+
+    /**
+     * @param resource|StreamInterface|string $sink
+     * @return resource|StreamInterface
+     * @throws InvalidArgumentException
+     */
+    protected function formatSink($sink)
+    {
+        try {
+            if (is_string($sink)) {
+                return Utils::tryFopen($sink, 'w+');
+            }
+
+            if (
+                is_resource($sink) && get_resource_type($sink) === 'stream'
+                || $sink instanceof StreamInterface
+            ) {
+                return $sink;
+            }
+
+            throw new InvalidArgumentException('Unsupported persist type.');
+        } catch (Throwable $t) {
+            throw new InvalidArgumentException($t->getMessage());
+        }
     }
 
     protected function getFormatFromQuery(string $query): string
@@ -189,6 +208,7 @@ class Request
     /**
      * @param resource|StreamInterface|string $body
      * @return resource|string
+     * @throws InvalidArgumentException
      */
     protected function compressRequest($body)
     {
@@ -229,11 +249,12 @@ class Request
     /**
      * @param array|resource|StreamInterface|string $values
      * @return resource|StreamInterface|string
+     * @throws InvalidArgumentException
      */
     protected function formatValues($values, string $format, bool $stringAsFile = false)
     {
         if (! $values) {
-            return new InvalidArgumentException('Values cannot be empty.');
+            return new InvalidArgumentException('The value cannot be empty.');
         }
 
         try {
@@ -250,9 +271,7 @@ class Request
             }
 
             if (is_array($values)) {
-                // JSONEachRow JSONStringsEachRow JSONCompactEachRow JSONCompactStringsEachRow
-                $format = 'JSONCompactEachRow';
-
+                // e.g. JSONEachRow JSONStringsEachRow JSONCompactEachRow JSONCompactStringsEachRow ...
                 $values = array_map(
                     fn ($v) => json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
                     $values
@@ -270,7 +289,7 @@ class Request
     protected function formatQuery(string $query, string $format): string
     {
         $query = rtrim(trim($query), ';');
-        $format || ($format = 'JSON');
+        $format || ($format = Formats::JSON);
         $formatStr = "\nFORMAT {$format}";
 
         if (preg_match('/\s+(FORMAT\s+\w+)\s*$/ius', $query)) {
@@ -362,20 +381,5 @@ class Request
         }
 
         return strval($value);
-    }
-
-    protected function getCompressionHeaders(bool $compressRequest, bool $decompressResponse): array
-    {
-        $headers = [];
-
-        if ($compressRequest) {
-            $headers['Content-Encoding'] = 'gzip';
-        }
-
-        if ($decompressResponse) {
-            $headers['Accept-Encoding'] = 'gzip';
-        }
-
-        return $headers;
     }
 }

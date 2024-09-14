@@ -15,6 +15,7 @@ namespace Suyar\ClickHouse\Param;
 use Suyar\ClickHouse\Param\Traits\HasBindings;
 use Suyar\ClickHouse\Param\Traits\HasCompressRequest;
 use Suyar\ClickHouse\Param\Traits\HasDecompressResponse;
+use Suyar\ClickHouse\Param\Traits\HasPersistTo;
 use Suyar\ClickHouse\Param\Traits\HasQuery;
 use Suyar\ClickHouse\Param\Traits\HasQueryId;
 use Suyar\ClickHouse\Param\Traits\HasSessionId;
@@ -31,4 +32,5 @@ class ExecuteParams extends BaseParams
     use HasValues;
     use HasCompressRequest;
     use HasDecompressResponse;
+    use HasPersistTo;
 }

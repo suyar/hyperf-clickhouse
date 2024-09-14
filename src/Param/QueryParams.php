@@ -12,10 +12,10 @@ declare(strict_types=1);
 
 namespace Suyar\ClickHouse\Param;
 
-use Psr\Http\Message\StreamInterface;
 use Suyar\ClickHouse\Param\Traits\HasBindings;
 use Suyar\ClickHouse\Param\Traits\HasDecompressResponse;
 use Suyar\ClickHouse\Param\Traits\HasFormat;
+use Suyar\ClickHouse\Param\Traits\HasPersistTo;
 use Suyar\ClickHouse\Param\Traits\HasQuery;
 use Suyar\ClickHouse\Param\Traits\HasQueryId;
 use Suyar\ClickHouse\Param\Traits\HasSessionId;
@@ -30,28 +30,5 @@ class QueryParams extends BaseParams
     use HasFormat;
     use HasQuery;
     use HasDecompressResponse;
-
-    /**
-     * @var resource|StreamInterface|string
-     */
-    protected $persistTo = '';
-
-    /**
-     * @param resource|StreamInterface|string $persistTo
-     * @return $this
-     */
-    public function setPersistTo($persistTo): static
-    {
-        $this->persistTo = $persistTo;
-
-        return $this;
-    }
-
-    /**
-     * @return resource|StreamInterface|string
-     */
-    public function getPersistTo()
-    {
-        return $this->persistTo;
-    }
+    use HasPersistTo;
 }

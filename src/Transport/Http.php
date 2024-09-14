@@ -13,11 +13,14 @@ declare(strict_types=1);
 namespace Suyar\ClickHouse\Transport;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Handler\CurlFactory;
 use GuzzleHttp\Handler\CurlHandler;
 use GuzzleHttp\HandlerStack;
 use Psr\Http\Message\ResponseInterface;
 use Suyar\ClickHouse\Config;
+use Suyar\ClickHouse\Exception\DatabaseException;
+use Suyar\ClickHouse\Exception\TransportException;
 use Suyar\ClickHouse\Param\BaseParams;
 
 class Http
@@ -34,13 +37,32 @@ class Http
         return new Request($this->config, $params, $method, $uri);
     }
 
+    /**
+     * @throws TransportException
+     * @throws DatabaseException
+     */
     public function sendRequest(Request $request): ResponseInterface
     {
-        return $this->httpClient->request(
-            $request->getMethod(),
-            $request->getUri(),
-            $request->getOptions()
-        );
+        try {
+            $response = $this->httpClient->request(
+                $request->getMethod(),
+                $request->getUri(),
+                $request->getOptions()
+            );
+
+            if ($response->getStatusCode() !== 200) {
+                $body = $response->getBody()->getContents();
+                if (preg_match('/Code:\s*\d+\.\s*DB::Exception.+/iu', trim($body), $matches)) {
+                    throw new DatabaseException($matches[0]);
+                }
+
+                throw new TransportException($response->getBody()->getContents());
+            }
+
+            return $response;
+        } catch (GuzzleException $e) {
+            throw new TransportException($e->getMessage());
+        }
     }
 
     protected function initHttpClient(): void
