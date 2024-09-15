@@ -40,6 +40,24 @@ class AbstractTestCase extends TestCase
                 'max_execution_time' => 30,
             ],
         ],
+        'fail' => [
+            'host' => '127.0.0.1',
+            'port' => 28123,
+            'username' => 'default',
+            'password' => '',
+            'database' => 'default',
+            'https' => false,
+            'compress_request' => true,
+            'decompress_response' => true,
+            'max_handles' => 10,
+            'options' => [
+                'timeout' => 30,
+                'debug' => true,
+            ],
+            'settings' => [
+                'max_execution_time' => 30,
+            ],
+        ],
     ];
 
     protected function makeClient(string $name = 'default'): Client

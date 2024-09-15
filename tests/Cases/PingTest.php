@@ -12,6 +12,9 @@ declare(strict_types=1);
 
 namespace Test\Cases;
 
+use Suyar\ClickHouse\Exception\ClickHouseException;
+use Throwable;
+
 /**
  * @internal
  * @coversNothing
@@ -21,12 +24,21 @@ class PingTest extends AbstractTestCase
     public function testPing()
     {
         $client = $this->makeClient();
+        $this->assertTrue($client->ping());
+    }
 
-        $response = $client->ping();
-        $body = $response->getBody();
+    public function testPingFail()
+    {
+        $client = $this->makeClient();
+        $this->assertTrue($client->ping());
 
-        var_dump($body->getContents());
+        $client = $this->makeClient('fail');
+        $this->assertFalse($client->ping(true));
 
-        $this->assertTrue(true);
+        try {
+            $client->ping();
+        } catch (Throwable $t) {
+            $this->assertInstanceOf(ClickHouseException::class, $t);
+        }
     }
 }

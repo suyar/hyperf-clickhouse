@@ -18,6 +18,7 @@ use Suyar\ClickHouse\Param\InsertParams;
 use Suyar\ClickHouse\Param\PingParams;
 use Suyar\ClickHouse\Param\QueryParams;
 use Suyar\ClickHouse\Transport\Http;
+use Throwable;
 
 class Client
 {
@@ -49,11 +50,21 @@ class Client
         return (new ExecuteParams())->setQuery($query)->setBindings($biddings);
     }
 
-    public function ping()
+    public function ping(bool $silent = false): bool
     {
-        $request = $this->http->newRequest(new PingParams(), 'GET', '/ping');
+        try {
+            $request = $this->http->newRequest(new PingParams(), 'GET', '/ping');
 
-        return $this->http->sendRequest($request);
+            $response = $this->http->sendRequest($request);
+
+            return trim($response->getBody()->getContents()) === 'Ok.';
+        } catch (Throwable $t) {
+            if ($silent) {
+                return false;
+            }
+
+            throw $t;
+        }
     }
 
     public function query(QueryParams $params)
