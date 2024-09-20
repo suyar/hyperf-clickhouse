@@ -12,50 +12,113 @@ declare(strict_types=1);
 
 namespace Test\Cases;
 
+use GuzzleHttp\Psr7\Utils;
+use Suyar\ClickHouse\Client;
+use Suyar\ClickHouse\Formats;
+
 /**
  * @internal
  * @coversNothing
  */
 class InsertTest extends AbstractTestCase
 {
-    public function testInsert()
+    protected Client $client;
+
+    protected function setUp(): void
     {
-        $client = $this->makeClient();
+        $this->client = $this->makeClient();
 
-        $params = $client->newInsert('summtt12');
-        $params->setValues([
-            [1, '你好好好好好好好好好好好好好好好好好好好好'],
-            [2, '我好好好好好好好好好好好好好好好好好好好好'],
-            [3, '他好好好好好好好好好好好好好好好好好好好好'],
-        ]);
-        $params->setColumns(['key', 'value']);
-
-        $response = $client->insert($params);
-        $body = $response->getBody();
-
-        var_dump($body->getContents());
-
-        $this->assertTrue(true);
+        // create table
+        $execute = $this->client->newExecute();
+        $execute->setQuery(
+            <<<'QUERY'
+CREATE TABLE IF NOT EXISTS test_i
+(
+    id UInt32,
+    name String
+)
+ENGINE = MergeTree
+ORDER BY id;
+QUERY
+        );
+        $this->client->send($execute);
     }
 
-    public function testInsertResource()
+    protected function tearDown(): void
     {
-        $stream = fopen('php://memory', 'r+');
-        for ($f = 1; $f <= 10; ++$f) {
-            fwrite($stream, json_encode([$f, '你好好好好好好好好好']) . "\n");
-        }
-        rewind($stream);
+        // drop table
+        $execute = $this->client->newExecute();
+        $execute->setQuery('DROP TABLE IF EXISTS test_i');
+        $this->client->send($execute);
+    }
 
-        $client = $this->makeClient();
+    public function testBaseInsert()
+    {
+        $params = $this->client->newInsert(
+            'test_i',
+            [
+                [1, 'name1'],
+                [2, 'name2'],
+                [3, 'name3'],
+            ],
+            ['id', 'name']
+        );
+        $params->setCompressRequest(true);
+        $response = $this->client->send($params);
 
-        $params = $client->newInsert('summtt12');
-        $params->setValues($stream);
+        $this->assertEquals(3, $response->summary->written_rows);
+    }
 
-        $response = $client->insert($params);
-        $body = $response->getBody();
+    public function testInsertWithString()
+    {
+        $params = $this->client->newInsert('test_i');
+        $params->setColumns(['id', 'name']);
+        $params->setFormat(Formats::JSONEachRow);
+        $params->setValues(
+            <<<'VALUES'
+{"id":1,"name":"a"}
+{"id":2,"name":"b"}
+{"id":3,"name":"c"}
+VALUES,
+            false
+        );
+        $response = $this->client->send($params);
 
-        var_dump($body->getContents());
+        $this->assertEquals(3, $response->summary->written_rows);
+    }
 
-        $this->assertTrue(true);
+    public function testInsertWithFile()
+    {
+        $file = BASE_PATH . '/tests/resource/input.data';
+
+        $input = <<<'INPUT'
+{"id":1,"name":"a"}
+{"id":2,"name":"b"}
+{"id":3,"name":"c"}
+INPUT;
+
+        file_put_contents($file, $input);
+
+        $params = $this->client->newInsert('test_i');
+        $params->setColumns(['id', 'name']);
+        $params->setFormat(Formats::JSONEachRow);
+
+        // with path
+        $params->setCompressRequest(true);
+        $params->setValues($file, true);
+        $response = $this->client->send($params);
+        $this->assertEquals(3, $response->summary->written_rows);
+
+        // with resource
+        $params->setCompressRequest(true);
+        $params->setValues(fopen($file, 'r'));
+        $response = $this->client->send($params);
+        $this->assertEquals(3, $response->summary->written_rows);
+
+        // with stream
+        $params->setCompressRequest(false); // StreamInterface values conflicts with compress_request.
+        $params->setValues(Utils::streamFor(fopen($file, 'r')));
+        $response = $this->client->send($params);
+        $this->assertEquals(3, $response->summary->written_rows);
     }
 }

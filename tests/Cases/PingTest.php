@@ -21,17 +21,15 @@ use Throwable;
  */
 class PingTest extends AbstractTestCase
 {
-    public function testPing()
+    public function testPingOk()
     {
         $client = $this->makeClient();
+
         $this->assertTrue($client->ping());
     }
 
     public function testPingFail()
     {
-        $client = $this->makeClient();
-        $this->assertTrue($client->ping());
-
         $client = $this->makeClient('fail');
         $this->assertFalse($client->ping(true));
 

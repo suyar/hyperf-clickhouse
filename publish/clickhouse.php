@@ -25,7 +25,7 @@ return [
         'max_handles' => 10,
         // guzzle default options
         'options' => [
-            'timeout' => 30,
+            'timeout' => 0,
         ],
         // clickhouse default query settings
         'settings' => [

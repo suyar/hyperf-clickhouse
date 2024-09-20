@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @license  https://github.com/suyar/hyperf-clickhouse/blob/master/LICENSE
  */
 
-namespace Suyar\ClickHouse\Result;
+namespace Suyar\ClickHouse\Transport;
 
 /**
  * @property string $read_rows

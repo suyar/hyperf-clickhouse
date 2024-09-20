@@ -18,6 +18,7 @@ use Suyar\ClickHouse\Param\InsertParams;
 use Suyar\ClickHouse\Param\PingParams;
 use Suyar\ClickHouse\Param\QueryParams;
 use Suyar\ClickHouse\Transport\Http;
+use Suyar\ClickHouse\Transport\Response;
 use Throwable;
 
 class Client
@@ -67,24 +68,13 @@ class Client
         }
     }
 
-    public function query(QueryParams $params)
+    /**
+     * Execute statement with params.
+     */
+    public function send(ExecuteParams|InsertParams|QueryParams $params): Response
     {
         $request = $this->http->newRequest($params);
 
-        return $this->http->sendRequest($request);
-    }
-
-    public function insert(InsertParams $params)
-    {
-        $request = $this->http->newRequest($params);
-
-        return $this->http->sendRequest($request);
-    }
-
-    public function execute(ExecuteParams $params)
-    {
-        $request = $this->http->newRequest($params);
-
-        return $this->http->sendRequest($request);
+        return new Response($this->http->sendRequest($request));
     }
 }

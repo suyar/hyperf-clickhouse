@@ -34,7 +34,7 @@ class AbstractTestCase extends TestCase
             'max_handles' => 10,
             'options' => [
                 'timeout' => 30,
-                'debug' => true,
+                'debug' => false,
             ],
             'settings' => [
                 'max_execution_time' => 30,
@@ -52,7 +52,7 @@ class AbstractTestCase extends TestCase
             'max_handles' => 10,
             'options' => [
                 'timeout' => 30,
-                'debug' => true,
+                'debug' => false,
             ],
             'settings' => [
                 'max_execution_time' => 30,
@@ -60,7 +60,7 @@ class AbstractTestCase extends TestCase
         ],
     ];
 
-    protected function makeClient(string $name = 'default'): Client
+    final protected function makeClient(string $name = 'default'): Client
     {
         if (isset(self::CONFIG[$name])) {
             return new Client(self::CONFIG[$name]);

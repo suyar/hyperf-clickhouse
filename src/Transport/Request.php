@@ -84,8 +84,8 @@ class Request
             '',
             $params->getBindings(),
             $settings,
-            $params->getQueryId(),
-            $params->getSessionId()
+            $params->getSessionId(),
+            $params->getQueryId()
         );
 
         if ($sink = $params->getPersistTo()) {
@@ -115,8 +115,8 @@ class Request
             $this->getInsertQuery($params->getTable(), $params->getColumns(), $params->getExcept(), $format),
             $params->getBindings(),
             array_replace($this->config->settings, $params->getSettings()),
-            $params->getQueryId(),
-            $params->getSessionId()
+            $params->getSessionId(),
+            $params->getQueryId()
         );
 
         return $options;
@@ -160,8 +160,8 @@ class Request
             $hasValues ? $query : '',
             $params->getBindings(),
             $settings,
-            $params->getQueryId(),
-            $params->getSessionId()
+            $params->getSessionId(),
+            $params->getQueryId()
         );
 
         if ($sink = $params->getPersistTo()) {
