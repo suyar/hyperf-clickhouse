@@ -14,7 +14,9 @@ namespace Suyar\ClickHouse\Param;
 
 use Suyar\ClickHouse\Param\Traits\HasBindings;
 use Suyar\ClickHouse\Param\Traits\HasCompressRequest;
+use Suyar\ClickHouse\Param\Traits\HasDatabase;
 use Suyar\ClickHouse\Param\Traits\HasFormat;
+use Suyar\ClickHouse\Param\Traits\HasProgress;
 use Suyar\ClickHouse\Param\Traits\HasQueryId;
 use Suyar\ClickHouse\Param\Traits\HasSessionId;
 use Suyar\ClickHouse\Param\Traits\HasSettings;
@@ -22,6 +24,8 @@ use Suyar\ClickHouse\Param\Traits\HasValues;
 
 class InsertParams extends BaseParams
 {
+    use HasDatabase;
+    use HasProgress;
     use HasBindings;
     use HasSettings;
     use HasSessionId;

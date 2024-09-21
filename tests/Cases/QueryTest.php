@@ -70,6 +70,9 @@ QUERY
         $params->setQueryId('aa-bb-cc');
         $params->setDecompressResponse(true);
         $params->setSetting('max_execution_time', 60);
+        $params->setProgress(function ($downloadTotal, $downloadedBytes, $uploadTotal, $uploadedBytes) {
+            // do something
+        });
         $response = $this->client->send($params);
 
         $this->assertSame(Formats::JSON, $response->format);

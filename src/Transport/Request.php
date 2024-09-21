@@ -80,7 +80,7 @@ class Request
         }
 
         $options['query'] = $this->formatSearch(
-            $this->config->database,
+            $params->getDatabase() ?: $this->config->database,
             '',
             $params->getBindings(),
             $settings,
@@ -90,6 +90,10 @@ class Request
 
         if ($sink = $params->getPersistTo()) {
             $options['sink'] = $this->formatSink($sink);
+        }
+
+        if ($progress = $params->getProgress()) {
+            $options['progress'] = $progress;
         }
 
         return $options;
@@ -111,13 +115,17 @@ class Request
         $options['body'] = $body;
 
         $options['query'] = $this->formatSearch(
-            $this->config->database,
+            $params->getDatabase() ?: $this->config->database,
             $this->getInsertQuery($params->getTable(), $params->getColumns(), $params->getExcept(), $format),
             $params->getBindings(),
             array_replace($this->config->settings, $params->getSettings()),
             $params->getSessionId(),
             $params->getQueryId()
         );
+
+        if ($progress = $params->getProgress()) {
+            $options['progress'] = $progress;
+        }
 
         return $options;
     }
@@ -156,7 +164,7 @@ class Request
         }
 
         $options['query'] = $this->formatSearch(
-            $this->config->database,
+            $params->getDatabase() ?: $this->config->database,
             $hasValues ? $query : '',
             $params->getBindings(),
             $settings,
@@ -166,6 +174,10 @@ class Request
 
         if ($sink = $params->getPersistTo()) {
             $options['sink'] = $this->formatSink($sink);
+        }
+
+        if ($progress = $params->getProgress()) {
+            $options['progress'] = $progress;
         }
 
         return $options;
