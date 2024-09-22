@@ -241,7 +241,7 @@ $params->setProgress(function ($downloadTotal, $downloadedBytes, $uploadTotal, $
     // do something
 });
 
-// Set binddings.
+// Set bindings.
 $params->setQuery('SELECT * FROM table_name WHERE name={name:String}');
 $params->setQuery('INSERT INTO table_name (id,name) VALUES (1, {name:String})');
 $params->setBinding('namne', 'name1');
