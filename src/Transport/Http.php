@@ -13,15 +13,16 @@ declare(strict_types=1);
 namespace Suyar\ClickHouse\Transport;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Handler\CurlFactory;
 use GuzzleHttp\Handler\CurlHandler;
 use GuzzleHttp\HandlerStack;
 use Psr\Http\Message\ResponseInterface;
 use Suyar\ClickHouse\Config;
+use Suyar\ClickHouse\Exception\ClickHouseException;
 use Suyar\ClickHouse\Exception\DatabaseException;
 use Suyar\ClickHouse\Exception\TransportException;
 use Suyar\ClickHouse\Param\BaseParams;
+use Throwable;
 
 class Http
 {
@@ -38,8 +39,7 @@ class Http
     }
 
     /**
-     * @throws TransportException
-     * @throws DatabaseException
+     * @throws ClickHouseException
      */
     public function sendRequest(Request $request): ResponseInterface
     {
@@ -56,12 +56,14 @@ class Http
                     throw new DatabaseException($matches[0]);
                 }
 
-                throw new TransportException($response->getBody()->getContents());
+                throw new TransportException($body);
             }
 
             return $response;
-        } catch (GuzzleException $e) {
-            throw new TransportException($e->getMessage());
+        } catch (ClickHouseException $e) {
+            throw $e;
+        } catch (Throwable $t) {
+            throw new TransportException($t->getMessage());
         }
     }
 

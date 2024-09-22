@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Suyar\ClickHouse;
 
 use Psr\Http\Message\StreamInterface;
+use Suyar\ClickHouse\Exception\ClickHouseException;
 use Suyar\ClickHouse\Param\ExecuteParams;
 use Suyar\ClickHouse\Param\InsertParams;
 use Suyar\ClickHouse\Param\PingParams;
@@ -70,6 +71,7 @@ class Client
 
     /**
      * Execute statement with params.
+     * @throws ClickHouseException
      */
     public function send(ExecuteParams|InsertParams|QueryParams $params): Response
     {
