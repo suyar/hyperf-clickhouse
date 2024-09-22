@@ -19,15 +19,17 @@ return [
         'password' => (string) env('CLICK_HOUSE_PASS', ''),
         'database' => (string) env('CLICK_HOUSE_DB', 'default'),
         'https' => (bool) env('CLICK_HOUSE_HTTPS', false),
+        // Set [Content-Encoding=gzip] by default and compress the request body.
         'compress_request' => false,
+        // Set [enable_http_compression=1] by default and decompress the response body.
         'decompress_response' => false,
-        // guzzle max curl handles
+        // Guzzle max curl handles.
         'max_handles' => 10,
-        // guzzle default options
+        // Guzzle default options.
         'options' => [
             'timeout' => 0,
         ],
-        // clickhouse default query settings
+        // ClickHouse default settings.
         'settings' => [
             // 'max_execution_time' => 30,
         ],

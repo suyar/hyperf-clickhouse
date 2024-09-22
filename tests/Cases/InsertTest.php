@@ -69,6 +69,21 @@ QUERY
         $this->assertEquals(3, $response->summary->written_rows);
     }
 
+    public function testInsertExcept()
+    {
+        $params = $this->client->newInsert('test_i');
+        $params->setColumns(['id']);
+        $params->setExcept(true);
+        $params->setValues([
+            ['name1'],
+            ['name2'],
+            ['name3'],
+        ]);
+        $response = $this->client->send($params);
+
+        $this->assertEquals(3, $response->summary->written_rows);
+    }
+
     public function testInsertWithString()
     {
         $params = $this->client->newInsert('test_i');

@@ -107,7 +107,7 @@ QUERY
     {
         $params = $this->client->newQuery();
         $params->setQuery('select * from test_q where name = {name:String}');
-        $params->setBidding('name', "a\nd");
+        $params->setBinding('name', "a\nd");
         $response = $this->client->send($params);
 
         $this->assertCount(1, $response->data);

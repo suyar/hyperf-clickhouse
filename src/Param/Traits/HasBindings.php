@@ -28,7 +28,7 @@ trait HasBindings
         return $this;
     }
 
-    public function setBidding(string $key, mixed $value): static
+    public function setBinding(string $key, mixed $value): static
     {
         $this->bindings[$key] = $value;
 
